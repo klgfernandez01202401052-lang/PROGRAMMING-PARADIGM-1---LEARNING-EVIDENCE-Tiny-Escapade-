@@ -23,31 +23,11 @@ public class TileManager {
         tile = new Tile[100];
         mapTileNum = new int[gp.maxWorldCol][gp.maxWorldRow];
 
-        getTileImage();
-        loadMap();
+        getTileImage();   // Set up all tile types
+        loadMap();        // Read tile indices from map file
     }
 
     public void getTileImage() {
-
-//            setUp(0, "grasses3", false);
-//            setUp(1, "grasses11", false);
-//            setUp(2, "grasses4", false);
-//            setUp(3, "grasses5", false);
-//            setUp(4, "grasses6", false);
-//            setUp(5, "grasses7", false);
-//            setUp(6, "grasses9", false);
-//            setUp(7, "grasses10", false);
-//            setUp(8, "grasses2", false);
-//            setUp(9, "grasses12", false);
-//            setUp(10, "grasses13", false);
-//            setUp(11, "grasses14", false);
-//            setUp(12, "grasses15", false);
-//            setUp(13, "grasses19", false);
-//            setUp(14, "grasses20", false);
-//            setUp(15, "grasses21", false);
-//            setUp(16, "grasses22", false);
-//            setUp(17, "tree", true);
-//            setUp(18, "dark tree", true);
 
         setUp(0, "80", false, false, 0, 0, 16, 16);
         setUp(1, "1", true,true,0, 40, 48, 16);
@@ -130,6 +110,7 @@ public class TileManager {
         setUp(78, "78", true,true,0, 0, 48, 48);
         setUp(79, "79", true,true,0, 0, 16, 16);
     }
+
     public void setUp(int index, String imageName, boolean collision, boolean front, int x, int y, int width, int height){
 
         UtilityTool uTool = new UtilityTool();
@@ -138,10 +119,11 @@ public class TileManager {
             tile[index] = new Tile();
             tile[index].image = ImageIO.read(getClass().getResourceAsStream("/newtiles/" + imageName + ".png"));
             tile[index].image = uTool.scaleImage(tile[index].image, gp.tileSize, gp.tileSize);
-            tile[index].collision = collision;
+            tile[index].collision = collision;   // Whether this tile blocks movement
 
-            tile[index].front = front;
+            tile[index].front = front;          // True = draw above entities
 
+            // Per-tile collision area inside the sprite
             tile[index].solidArea.x = x;
             tile[index].solidArea.y = y;
             tile[index].solidArea.width = width;
@@ -168,6 +150,7 @@ public class TileManager {
             int col = 0;
             int row = 0;
 
+            // Read each line and split comma-separated tile indices into mapTileNum
             while(col < gp.maxWorldCol && row < gp.maxWorldRow){
 
                 String line = br.readLine();
@@ -192,7 +175,7 @@ public class TileManager {
         }catch(Exception e){}
     }
 
-    // 1. Change the arguments to accept 'boolean drawFront'
+    // Draw tiles either as background (drawFront=false) or foreground (drawFront=true)
     public void draw(Graphics2D g2, boolean drawFront) {
 
         int worldCol = 0;
@@ -202,20 +185,19 @@ public class TileManager {
 
             int tileNum = mapTileNum[worldCol][worldRow];
 
-            // ... (Your existing worldX, worldY, screenX, screenY calculations) ...
+            // Convert world tile coordinates to screen space around the player
             int worldX = worldCol * gp.tileSize;
             int worldY = worldRow * gp.tileSize;
             int screenX = worldX - gp.player.worldX + gp.player.screenX;
             int screenY = worldY - gp.player.worldY + gp.player.screenY;
 
-            // ... (Your existing boundary check if statement) ...
+            // Only draw tiles inside the camera view
             if (worldX + gp.tileSize > gp.player.worldX - gp.player.screenX &&
                     worldX - gp.tileSize < gp.player.worldX + gp.player.screenX &&
                     worldY + gp.tileSize > gp.player.worldY - gp.player.screenY &&
                     worldY - gp.tileSize < gp.player.worldY + gp.player.screenY) {
 
-                // 2. ADD THIS LOGIC CHECK
-                // We only draw if the tile's 'front' status matches what we are currently asking for
+                // Draw either front or back tiles, depending on this pass
                 if (tile[tileNum].front == drawFront) {
                     g2.drawImage(tile[tileNum].image, screenX, screenY, null);
 
